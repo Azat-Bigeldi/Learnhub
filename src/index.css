@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #C85D2A;
+  --color-text: #57423A;
+  --color-primary-hover: #944d29;
+  --color-bg: #E5E7EB;
+  --color-dark: #191510;
+  --font-heading: 'Playfair Display', Georgia, serif;
+}
+
+/* a {
+  text-decoration: no-underline;
+} */
