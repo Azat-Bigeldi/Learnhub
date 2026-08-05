@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Suspense, lazy, useEffect } from 'react';
 import { useAppSelector } from './store';
-import { selectCurrentUser } from './store/authSlice';
+import { selectCurrentUser } from './store/Authslice';
 import useAuthSession from './hooks/useAuthSession';
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
