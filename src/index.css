@@ -4,11 +4,9 @@
   --color-primary: #C85D2A;
   --color-text: #57423A;
   --color-primary-hover: #944d29;
-  --color-bg: #E5E7EB;
-  --color-dark: #191510;
+  --color-bg: #FAF8F4;
+  --color-bgo: #F5F2EA;
+  --color-bgs: #F0EBE3;
+  --color-dark: #1A1510;
   --font-heading: 'Playfair Display', Georgia, serif;
 }
-
-/* a {
-  text-decoration: no-underline;
-} */
