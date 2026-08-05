@@ -1,6 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { useDispatch , useSelector } from "react-redux";
-import authSliceReducer from './authSlice';
+import authSliceReducer from './Authslice.js';
 import notificationSliceReducer from './notificationSlice.js';
 
 const reduxStore = configureStore({

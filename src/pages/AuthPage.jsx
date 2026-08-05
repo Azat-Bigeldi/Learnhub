@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useNavigate, useLocation, Link } from "react-router-dom"
 import { useAppDispatch } from "../store"
-import { setUser } from "../store/authSlice.js"
+import { setUser } from "../store/Authslice.js"
 import { addNotification } from "../store/notificationSlice.js"
 import { supabase } from "../lib/supabaseClient"
 import useDocumentTitle from "../hooks/useDocumentTitle"

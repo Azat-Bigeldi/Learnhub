@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useAppDispatch } from '../store'
-import { setUser, clearUser } from '../store/authSlice'
+import { setUser, clearUser } from '../store/Authslice'
 
 function mapSupabaseUserToAppUser(supabaseUser) {
     if (!supabaseUser) return null
