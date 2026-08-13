@@ -1,10 +1,13 @@
 import { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../store';
 import { removeNotification, selectNotifications } from '../store/notificationSlice.js';
+import { useLanguage } from '../i18n/useLanguage';
 
 const TOAST_AUTO_DISMISS_MS = 3500;
 
 function SingleToastItem({ notification, onRequestCloseToast }) {
+    const { t } = useLanguage();
+
     useEffect(() => {
         const timer = setTimeout(() => onRequestCloseToast(notification.id), TOAST_AUTO_DISMISS_MS);
         return () => clearTimeout(timer);
@@ -19,7 +22,7 @@ function SingleToastItem({ notification, onRequestCloseToast }) {
     return (
         <div className={`${typeStyles[notification.type] || typeStyles.info} text-white rounded-lg px-4 py-3 shadow-lg flex items-center justify-between gap-4 min-w-[260px]`} role="status">
             <span>{notification.message}</span>
-            <button onClick={() => onRequestCloseToast(notification.id)} aria-label="Закрыть" className="text-white/80 hover:text-white">×</button>
+            <button onClick={() => onRequestCloseToast(notification.id)} aria-label={t('toast.closeAria')} className="text-white/80 hover:text-white">×</button>
         </div>
     );
 }

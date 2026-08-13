@@ -1,6 +1,9 @@
 import { Component } from 'react'
+import { connect } from 'react-redux'
+import { selectLanguage } from '../store/languageSlice'
+import { translate } from '../i18n/useLanguage'
 
-export default class ErrorBoundary extends Component {
+class ErrorBoundary extends Component {
     constructor(props) {
         super(props)
         this.state = { hasError: false }
@@ -23,20 +26,27 @@ export default class ErrorBoundary extends Component {
     render() {
         if (!this.state.hasError) return this.props.children
 
+        // Классовые компоненты не могут использовать хуки (useLanguage), поэтому
+        // язык приходит через connect() ниже, а перевод делаем чистой функцией.
+        const t = (key) => translate(this.props.language, key)
+
         return (
             <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-bg text-text px-6 text-center">
-                <h1 className="text-3xl font-heading">Что-то пошло не так</h1>
+                <h1 className="text-3xl font-heading">{t('errorBoundary.title')}</h1>
                 <p className="text-text/70 max-w-md">
-                    Произошла непредвиденная ошибка. Попробуйте обновить страницу — если проблема повторится,
-                    свяжитесь с нами через WhatsApp.
+                    {t('errorBoundary.message')}
                 </p>
                 <button
                     onClick={this.handleReload}
                     className="bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-full transition-colors"
                 >
-                    Обновить страницу
+                    {t('errorBoundary.reloadBtn')}
                 </button>
             </div>
         )
     }
 }
+
+const mapStateToProps = (reduxState) => ({ language: selectLanguage(reduxState) })
+
+export default connect(mapStateToProps)(ErrorBoundary)

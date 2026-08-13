@@ -6,10 +6,12 @@ import { addNotification } from "../store/notificationSlice.js"
 import { supabase } from "../lib/supabaseClient"
 import useDocumentTitle from "../hooks/useDocumentTitle"
 import Spinner from "../components/Spinner"
+import { useLanguage } from "../i18n/useLanguage"
 
 const MIN_PASSWORD_LENGTH = 6
 
 export default function AuthPage({ initialTab = "login" }) {
+    const { t } = useLanguage();
     const [activeTab, setActiveTab] = useState(initialTab) // 'login' | 'register'
     const [fullName, setFullName] = useState("")
     const [email, setEmail] = useState("")
@@ -24,10 +26,10 @@ export default function AuthPage({ initialTab = "login" }) {
 
     const validate = () => {
         if (activeTab === "register" && fullName.trim().length < 2) {
-            return "Укажите имя (минимум 2 символа)"
+            return t("auth.errors.nameTooShort")
         }
         if (password.length < MIN_PASSWORD_LENGTH) {
-            return `Пароль должен содержать минимум ${MIN_PASSWORD_LENGTH} символов`
+            return t("auth.errors.passwordTooShort", { min: MIN_PASSWORD_LENGTH })
         }
         return ""
     }
@@ -59,7 +61,7 @@ export default function AuthPage({ initialTab = "login" }) {
         if (!data.session) {
             setLoading(false)
             dispatch(addNotification({
-                message: "Мы отправили письмо для подтверждения на вашу почту. Проверьте входящие.",
+                message: t("auth.notifications.confirmEmail"),
                 type: "info",
             }))
             setActiveTab("login")
@@ -74,18 +76,18 @@ export default function AuthPage({ initialTab = "login" }) {
         }
         localStorage.setItem("user", JSON.stringify(safeUser))
         dispatch(setUser(safeUser))
-        dispatch(addNotification({ message: `Добро пожаловать, ${safeUser.full_name || safeUser.email}!`, type: "success" }))
+        dispatch(addNotification({ message: t("auth.notifications.welcomeBack", { name: safeUser.full_name || safeUser.email }), type: "success" }))
         setLoading(false)
         navigate(redirectTo, { replace: true })
     }
 
-    useDocumentTitle(activeTab === "login" ? "Вход" : "Регистрация")
+    useDocumentTitle(activeTab === "login" ? t("meta.login") : t("meta.register"))
 
     return (
         <div className="min-h-[70vh] flex items-center justify-center bg-bg px-4 py-16">
             <div className="bg-white rounded-2xl shadow-lg p-6 md:p-10 w-full max-w-md">
-                <h1 className="text-3xl font-heading text-text text-center">Добро пожаловать</h1>
-                <p className="text-text text-center text-sm mt-2 mb-6">Начните свой путь к знаниям вместе с нами</p>
+                <h1 className="text-3xl font-heading text-text text-center">{t("auth.welcome")}</h1>
+                <p className="text-text text-center text-sm mt-2 mb-6">{t("auth.subtitle")}</p>
 
                 <div className="flex border-b border-gray-200 mb-6">
                     <button
@@ -93,14 +95,14 @@ export default function AuthPage({ initialTab = "login" }) {
                         className={`flex-1 pb-3 text-sm tracking-wide uppercase ${activeTab === "login" ? "text-primary border-b-2 border-primary" : "text-text/60"}`}
                         onClick={() => { setActiveTab("login"); setError("") }}
                     >
-                        Войти
+                        {t("auth.loginTab")}
                     </button>
                     <button
                         type="button"
                         className={`flex-1 pb-3 text-sm tracking-wide uppercase ${activeTab === "register" ? "text-primary border-b-2 border-primary" : "text-text/60"}`}
                         onClick={() => { setActiveTab("register"); setError("") }}
                     >
-                        Регистрация
+                        {t("auth.registerTab")}
                     </button>
                 </div>
 
@@ -109,7 +111,7 @@ export default function AuthPage({ initialTab = "login" }) {
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
                     {activeTab === "register" && (
                         <div>
-                            <label htmlFor="fullName" className="block text-xs font-medium text-text uppercase tracking-wide mb-1">Имя</label>
+                            <label htmlFor="fullName" className="block text-xs font-medium text-text uppercase tracking-wide mb-1">{t("auth.nameLabel")}</label>
                             <input
                                 id="fullName"
                                 className="w-full border border-gray-300 rounded-lg px-4 py-2"
@@ -118,7 +120,7 @@ export default function AuthPage({ initialTab = "login" }) {
                         </div>
                     )}
                     <div>
-                        <label htmlFor="email" className="block text-xs font-medium text-text uppercase tracking-wide mb-1">Электронная почта</label>
+                        <label htmlFor="email" className="block text-xs font-medium text-text uppercase tracking-wide mb-1">{t("auth.emailLabel")}</label>
                         <input
                             id="email"
                             className="w-full border border-gray-300 rounded-lg px-4 py-2"
@@ -126,7 +128,7 @@ export default function AuthPage({ initialTab = "login" }) {
                         />
                     </div>
                     <div>
-                        <label htmlFor="password" className="block text-xs font-medium text-text uppercase tracking-wide mb-1">Пароль</label>
+                        <label htmlFor="password" className="block text-xs font-medium text-text uppercase tracking-wide mb-1">{t("auth.passwordLabel")}</label>
                         <input
                             id="password"
                             className="w-full border border-gray-300 rounded-lg px-4 py-2"
@@ -137,28 +139,28 @@ export default function AuthPage({ initialTab = "login" }) {
                     <button type="submit" disabled={loading}
                         className="bg-primary hover:bg-primary-hover text-white uppercase tracking-wide text-sm rounded-full px-8 py-3 mt-2 disabled:opacity-50 flex items-center justify-center gap-2">
                         {loading && <Spinner />}
-                        {loading ? "Загрузка..." : activeTab === "login" ? "Войти" : "Зарегистрироваться"}
+                        {loading ? t("auth.loading") : activeTab === "login" ? t("auth.submitLogin") : t("auth.submitRegister")}
                     </button>
                 </form>
 
                 <p className="text-sm text-text text-center mt-4">
                     {activeTab === "login" ? (
-                        <>Нет аккаунта?{" "}
+                        <>{t("auth.noAccount")}{" "}
                             <button type="button" className="text-primary underline" onClick={() => setActiveTab("register")}>
-                                Зарегистрироваться
+                                {t("auth.registerLink")}
                             </button>
                         </>
                     ) : (
-                        <>Уже есть аккаунт?{" "}
+                        <>{t("auth.haveAccount")}{" "}
                             <button type="button" className="text-primary underline" onClick={() => setActiveTab("login")}>
-                                Войти
+                                {t("auth.loginLink")}
                             </button>
                         </>
                     )}
                 </p>
                 <p className="text-xs text-text/50 text-center mt-2">
-                    Продолжая, вы соглашаетесь с <Link to="/terms" className="underline">условиями использования</Link> и{" "}
-                    <Link to="/privacy" className="underline">политикой конфиденциальности</Link>.
+                    {t("auth.agreementPrefix")} <Link to="/terms" className="underline">{t("auth.termsOfUse")}</Link> {t("auth.agreementMiddle")}{" "}
+                    <Link to="/privacy" className="underline">{t("auth.privacyPolicy")}</Link>{t("auth.agreementSuffix")}
                 </p>
             </div>
         </div>

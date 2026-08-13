@@ -3,6 +3,7 @@ import { Suspense, lazy, useEffect } from 'react';
 import { useAppSelector } from './store';
 import { selectCurrentUser } from './store/Authslice';
 import useAuthSession from './hooks/useAuthSession';
+import { useLanguage } from './i18n/useLanguage';
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ToastContainer from "./components/ToastContainer";
@@ -13,14 +14,17 @@ import Main from "./pages/Main";
 // вес начального бандла для главной страницы (самой посещаемой).
 const AuthPage = lazy(() => import("./pages/AuthPage"));
 const CoursePage = lazy(() => import("./pages/CoursePage"));
+const LessonPage = lazy(() => import("./pages/LessonPage"));
+const TaskPage = lazy(() => import("./pages/TaskPage"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 function RouteFallback() {
+    const { t } = useLanguage();
     return (
         <div className="min-h-[50vh] flex items-center justify-center text-text/50 text-sm">
-            Загрузка...
+            {t("common.loading")}
         </div>
     );
 }
@@ -66,9 +70,14 @@ function ScrollManager() {
 }
 
 function AppLayout() {
+    const location = useLocation();
+    // Страница урока — полноэкранный плеер (видео + программа курса) без
+    // общего сайтового хедера и футера, как в реальных LMS-плеерах.
+    const isImmersiveLessonPage = location.pathname.startsWith("/courses/lesson/");
+
     return (
         <>
-            <Navbar />
+            {!isImmersiveLessonPage && <Navbar />}
             <ScrollManager />
             <ToastContainer />
             <main>
@@ -78,6 +87,8 @@ function AppLayout() {
                         <Route path="/auth" element={<AuthPage initialTab="login" />} />
                         <Route path="/register" element={<AuthPage initialTab="register" />} />
                         <Route path="/courses" element={<CoursePage />} />
+                        <Route path="/courses/lesson/:moduleIndex/:topicIndex" element={<LessonPage />} />
+                        <Route path="/courses/lesson/:moduleIndex/:topicIndex/task/:taskIndex" element={<TaskPage />} />
                         <Route path="/privacy" element={<PrivacyPolicy />} />
                         <Route path="/terms" element={<TermsOfService />} />
                         {/* Пример защищённого маршрута — используем PrivateRoute, чтобы
@@ -95,7 +106,7 @@ function AppLayout() {
                     </Routes>
                 </Suspense>
             </main>
-            <Footer />
+            {!isImmersiveLessonPage && <Footer />}
         </>
     );
 }
