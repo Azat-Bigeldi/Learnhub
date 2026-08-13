@@ -1,30 +1,18 @@
 import useDocumentTitle from '../hooks/useDocumentTitle'
+import { useLanguage } from '../i18n/useLanguage'
 
 export default function TermsOfService() {
-    useDocumentTitle('Условия использования')
+    const { t } = useLanguage();
+    useDocumentTitle(t('meta.terms'))
+    const paragraphs = t('terms.paragraphs')
 
     return (
         <section className="px-6 md:px-16 lg:px-24 py-16 max-w-3xl mx-auto text-text">
-            <h1 className="text-3xl md:text-4xl font-heading mb-8">Условия использования</h1>
+            <h1 className="text-3xl md:text-4xl font-heading mb-8">{t('terms.title')}</h1>
             <div className="flex flex-col gap-4 text-text/80 leading-relaxed">
-                <p>
-                    Используя платформу AtokSchool, вы соглашаетесь проходить обучение добросовестно и не
-                    передавать доступ к своему личному кабинету третьим лицам.
-                </p>
-                <p>
-                    Материалы курсов (видео-уроки, тесты, методические пособия) предназначены только для
-                    личного использования и не подлежат копированию или распространению без согласия
-                    AtokSchool.
-                </p>
-                <p>
-                    Оплата курса подтверждает согласие с программой обучения и графиком занятий, указанным
-                    на странице курса. Условия возврата средств описаны в Политике конфиденциальности.
-                </p>
-                <p>
-                    AtokSchool оставляет за собой право обновлять данные условия — актуальная версия всегда
-                    доступна на этой странице.
-                </p>
-                <p>Дата последнего обновления: 3 января 2026 года.</p>
+                {paragraphs.map((paragraph, index) => (
+                    <p key={index}>{paragraph}</p>
+                ))}
             </div>
         </section>
     )

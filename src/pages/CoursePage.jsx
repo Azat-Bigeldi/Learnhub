@@ -2,26 +2,15 @@ import { useState } from "react"
 import play from "../imgsourse/play.png"
 import useDocumentTitle from "../hooks/useDocumentTitle"
 import { openWhatsApp } from "../utils/WhatsApp"
+import { useLanguage } from "../i18n/useLanguage"
+import TaskNumberAccordion from "../components/TaskNumberAccordion"
 
-const MODULES = [
-    {
-        title: "Кинематика",
-        lessons: 8,
-        topics: ["Равномерное движение", "Ускорение", "Свободное падение", "Графики движения"],
-    },
-    {
-        title: "Динамика",
-        lessons: 10,
-        topics: ["Законы Ньютона", "Силы трения", "Импульс", "Всемирное тяготение"],
-    },
-    {
-        title: "Законы сохранения",
-        lessons: 6,
-        topics: ["Закон сохранения энергии", "Закон сохранения импульса", "Работа и мощность"],
-    },
-]
+// Количество уроков в каждом модуле не зависит от языка, поэтому хранится
+// отдельно от переводимых заголовков и тем (см. locales/*.js -> coursePage.modules).
+const MODULE_LESSON_COUNTS = [8, 10, 6]
 
-function AccordionItem({ module, index, isOpen, onToggle }) {
+function AccordionItem({ module, lessonsCount, lessonsLabel, index, isOpen, onToggle }) {
+    const { t } = useLanguage();
     return (
         <div className="border-b border-gray-200">
             <button
@@ -34,7 +23,7 @@ function AccordionItem({ module, index, isOpen, onToggle }) {
                     </span>
                     <div>
                         <h3 className="text-lg text-text">{module.title}</h3>
-                        <p className="text-sm text-text/50">{module.lessons} уроков</p>
+                        <p className="text-sm text-text/50">{lessonsCount} {lessonsLabel}</p>
                     </div>
                 </div>
                 <svg
@@ -49,14 +38,13 @@ function AccordionItem({ module, index, isOpen, onToggle }) {
                 className={`grid transition-all duration-300 ease-in-out ${isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
             >
                 <div className="overflow-hidden">
-                    <ul className="pb-6 pl-16 flex flex-col gap-2 text-text/70 text-sm">
-                        {module.topics.map((t) => (
-                            <li key={t} className="flex items-center gap-2">
-                                <span className="w-1 h-1 rounded-full bg-primary" />
-                                {t}
-                            </li>
-                        ))}
-                    </ul>
+                    <div className="pb-6 pl-0 md:pl-16">
+                        <TaskNumberAccordion
+                            tasks={module.topics}
+                            heading={t("coursePage.topicsHeading")}
+                            linkBuilder={(topicIndex) => `/courses/lesson/${index}/${topicIndex}`}
+                        />
+                    </div>
                 </div>
             </div>
         </div>
@@ -64,15 +52,19 @@ function AccordionItem({ module, index, isOpen, onToggle }) {
 }
 
 export default function CoursePage() {
-    useDocumentTitle("Курс физики — подготовка к ЕНТ")
+    const { t } = useLanguage();
+    useDocumentTitle(t("meta.courses"))
     const [openIndex, setOpenIndex] = useState(null)
+
+    const modules = t("coursePage.modules")
+    const lessonsLabel = t("coursePage.lessonsLabel")
 
     const handleToggle = (index) => {
         setOpenIndex((prev) => (prev === index ? null : index))
     }
 
     const handleEnroll = () => {
-        openWhatsApp("Здравствуйте! Хочу записаться на курс физики ЕНТ")
+        openWhatsApp(t("whatsapp.enrollMessage"))
     }
 
     return (
@@ -82,26 +74,24 @@ export default function CoursePage() {
                     {/* левая колонка */}
                     <div className="flex flex-col gap-6">
                         <span className="inline-block w-fit bg-white border border-gray-200 text-xs uppercase tracking-wide px-4 py-1.5 rounded-full">
-                            Предмет
+                            {t("coursePage.subjectBadge")}
                         </span>
                         <h1 className="text-3xl sm:text-4xl font-serif leading-tight">
-                            Физика — подготовка к ЕНТ
+                            {t("coursePage.title")}
                         </h1>
                         <p className="text-text/70 leading-relaxed">
-                            Полный курс подготовки по всем разделам физики для успешной сдачи ЕНТ.
-                            Погрузитесь в законы природы с опытными преподавателями и понятными
-                            объяснениями сложных тем.
+                            {t("coursePage.description")}
                         </p>
                         <div className="flex flex-wrap items-center gap-4 sm:gap-6 mt-4">
                             <button
                                 onClick={handleEnroll}
                                 className="bg-primary hover:bg-primary-hover text-white uppercase tracking-wide text-sm rounded-full px-6 sm:px-8 py-3 transition-colors"
                             >
-                                Записаться
+                                {t("coursePage.enrollBtn")}
                             </button>
                             <div>
-                                <p className="font-medium">35 000 ₸ / мес</p>
-                                <p className="text-xs text-text/50">включает все материалы</p>
+                                <p className="font-medium">{t("coursePage.price")}</p>
+                                <p className="text-xs text-text/50">{t("coursePage.priceNote")}</p>
                             </div>
                         </div>
                     </div>
@@ -109,14 +99,14 @@ export default function CoursePage() {
                     {/* правая колонка — видео-плашка */}
                     <div className="flex flex-col gap-3">
                         <div>
-                            <p className="text-center font-medium">Знакомство с курсом</p>
+                            <p className="text-center font-medium">{t("coursePage.videoTitle")}</p>
                             <p className="text-center text-sm text-text/50">
-                                Посмотрите короткое видео о том, как проходит обучение
+                                {t("coursePage.videoDescription")}
                             </p>
                         </div>
                         <button
                             type="button"
-                            aria-label="Смотреть видео о курсе"
+                            aria-label={t("coursePage.watchVideoAria")}
                             className="relative rounded-2xl bg-gray-300 aspect-video flex items-center justify-center overflow-hidden transition-transform hover:scale-[1.02]"
                         >
                             <span className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white flex items-center justify-center shadow-lg">
@@ -128,12 +118,14 @@ export default function CoursePage() {
             </section>
 
             <section className="px-4 sm:px-6 md:px-24 pb-16 md:pb-24 max-w-7xl mx-auto">
-                <h2 className="text-2xl sm:text-3xl font-serif mb-8">Модули курса</h2>
+                <h2 className="text-2xl sm:text-3xl font-serif mb-8">{t("coursePage.modulesHeading")}</h2>
                 <div>
-                    {MODULES.map((module, index) => (
+                    {modules.map((module, index) => (
                         <AccordionItem
                             key={module.title}
                             module={module}
+                            lessonsCount={MODULE_LESSON_COUNTS[index]}
+                            lessonsLabel={lessonsLabel}
                             index={index}
                             isOpen={openIndex === index}
                             onToggle={handleToggle}

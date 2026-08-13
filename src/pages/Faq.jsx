@@ -1,31 +1,20 @@
 import { useState } from "react"
+import { useLanguage } from "../i18n/useLanguage"
 
 export default function Faq() {
+    const { t } = useLanguage();
     const [activeIndex, setActiveIndex] = useState(null);
 
     const toggleAccordion = (index) => {
         setActiveIndex(activeIndex=== index ? null : index);
     };
 
-    const faqData = [
-        {
-            question: "Как записаться на курс?",
-            answer: "Чтобы записаться на курс, выберите интересующий вас курс на странице 'Курсы' и нажмите кнопку 'Записаться'."
-        },
-        {
-            question: "Какие материалы предоставляются?",
-            answer: "Мы предоставляем видео-уроки, практические тесты и доступ к личному куратору для помощи в обучении."
-        },
-        {
-            question: "Можно ли получить возврат средств?",
-            answer: "Да, вы можете запросить возврат средств в течение 24 часов после начала курса, если вы не удовлетворены качеством обучения."
-        }
-    ];
+    const faqData = t("faq.items");
 
     return (
         <section id="faq" className="scroll-anchor px-4 sm:px-6 md:px-12 lg:px-24 py-16 bg-bgo text-text">
             <div className="max-w-3xl mx-auto flex flex-col gap-8 md:gap-16">
-                <h2 className="text-2xl sm:text-3xl font-serif text-center">Часто задаваемые вопросы</h2>
+                <h2 className="text-2xl sm:text-3xl font-serif text-center">{t("faq.heading")}</h2>
                 <div className="flex flex-col gap-4">
                 {faqData.map((item, index) => {
                     const isOpen = activeIndex === index;
@@ -65,6 +54,3 @@ export default function Faq() {
         </section>
     );
 }
-
-
-

@@ -1,4 +1,7 @@
+import { useLanguage } from "../i18n/useLanguage";
+
 export default function ConfirmModal({ isOpen, message, onConfirm, onCancel }) {
+    const { t } = useLanguage();
     if (!isOpen) return null;
 
     return (
@@ -6,8 +9,8 @@ export default function ConfirmModal({ isOpen, message, onConfirm, onCancel }) {
             <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4" onClick={(e) => e.stopPropagation()}>
                 <p className="text-text mb-6">{message}</p>
                 <div className="flex justify-end gap-3">
-                    <button onClick={onCancel} className="px-4 py-2 rounded-full border border-gray-300 text-text">Отмена</button>
-                    <button onClick={onConfirm} className="px-4 py-2 rounded-full bg-primary text-white hover:bg-primary-hover">Подтвердить</button>
+                    <button onClick={onCancel} className="px-4 py-2 rounded-full border border-gray-300 text-text">{t("common.cancel")}</button>
+                    <button onClick={onConfirm} className="px-4 py-2 rounded-full bg-primary text-white hover:bg-primary-hover">{t("common.confirm")}</button>
                 </div>
             </div>
         </div>
