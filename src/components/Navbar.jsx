@@ -148,23 +148,35 @@ export default function Navbar() {
                 </button>
             </div>
 
-            {/* Затемнение фона под выезжающим сайдбаром */}
-            <div
-                onClick={() => setIsMenuOpen(false)}
-                aria-hidden="true"
-                className={`fixed inset-0 bg-black/60 z-40 transition-opacity duration-300 lg:hidden ${
-                    isMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-                }`}
-            />
+            {/* Затемнение фона под выезжающим сайдбаром. Рендерим только когда
+                меню открыто (а не всегда с opacity-0) — так надёжнее: не нужно
+                полагаться на то, что "невидимый" full-screen div с opacity-0
+                и pointer-events-none корректно проигнорируется браузером. */}
+            {isMenuOpen && (
+                <div
+                    onClick={() => setIsMenuOpen(false)}
+                    aria-hidden="true"
+                    className="fixed inset-0 z-40 lg:hidden"
+                    style={{ backgroundColor: "rgba(0, 0, 0, 0.6)" }}
+                />
+            )}
 
-            {/* Мобильное меню — выезжающий сайдбар справа */}
+            {/* Мобильное меню — выезжающий сайдбар справа.
+                Ключевые свойства (position, ширина, непрозрачный фон) заданы
+                и через Tailwind, и продублированы инлайн-стилем — так панель
+                не сломается даже если конкретный класс по какой-то причине
+                не попадёт в собранный CSS (устаревший кеш сборки и т.п.). */}
             <aside
                 role="dialog"
                 aria-modal="true"
                 aria-label={t("navbar.openMenu")}
-                className={`fixed top-0 right-0 z-50 h-full w-full max-w-xs bg-bg shadow-2xl transition-transform duration-300 ease-in-out lg:hidden ${
+                className={`fixed top-0 right-0 z-50 h-full shadow-2xl transition-transform duration-300 ease-in-out lg:hidden ${
                     isMenuOpen ? "translate-x-0" : "translate-x-full"
                 }`}
+                style={{
+                    width: "min(85vw, 320px)",
+                    backgroundColor: "#FAF8F4",
+                }}
             >
                 <div className="flex items-center justify-between px-4 sm:px-6 h-16 border-b border-black/5">
                     <span className="text-primary font-bold italic">AtokSchool</span>
