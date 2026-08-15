@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Suspense, lazy, useEffect } from 'react';
 import { useAppSelector } from './store';
-import { selectCurrentUser } from './store/Authslice';
+import { selectCurrentUser, selectIsAdmin } from './store/Authslice';
 import useAuthSession from './hooks/useAuthSession';
 import { useLanguage } from './i18n/useLanguage';
 import Navbar from "./components/Navbar";
@@ -16,6 +16,8 @@ const AuthPage = lazy(() => import("./pages/AuthPage"));
 const CoursePage = lazy(() => import("./pages/CoursePage"));
 const LessonPage = lazy(() => import("./pages/LessonPage"));
 const TaskPage = lazy(() => import("./pages/TaskPage"));
+const AnswerPage = lazy(() => import("./pages/AnswerPage"));
+const AdminPage = lazy(() => import("./pages/AdminPage"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -32,10 +34,14 @@ function RouteFallback() {
 // Компонент-страж: пускает на защищённый маршрут только авторизованных
 // пользователей, иначе отправляет на /auth и запоминает, откуда пришли,
 // чтобы после входа можно было вернуть пользователя обратно.
-function PrivateRoute({ children }) {
+// requireAdmin — дополнительно требует роль администратора (проверяется на
+// клиенте для UX, но реальная защита данных — RLS-политики в Supabase).
+function PrivateRoute({ children, requireAdmin = false }) {
     const user = useAppSelector(selectCurrentUser);
+    const isAdmin = useAppSelector(selectIsAdmin);
     const location = useLocation();
     if (!user) return <Navigate to="/auth" state={{ from: location }} replace />;
+    if (requireAdmin && !isAdmin) return <Navigate to="/courses" replace />;
     return children;
 }
 
@@ -89,16 +95,17 @@ function AppLayout() {
                         <Route path="/courses" element={<CoursePage />} />
                         <Route path="/courses/lesson/:moduleIndex/:topicIndex" element={<LessonPage />} />
                         <Route path="/courses/lesson/:moduleIndex/:topicIndex/task/:taskIndex" element={<TaskPage />} />
+                        <Route path="/courses/lesson/:moduleIndex/:topicIndex/answer" element={<AnswerPage />} />
                         <Route path="/privacy" element={<PrivacyPolicy />} />
                         <Route path="/terms" element={<TermsOfService />} />
-                        {/* Пример защищённого маршрута — используем PrivateRoute, чтобы
-                            компонент не оставался мёртвым кодом. Расширяйте по мере
-                            появления страниц личного кабинета. */}
+                        {/* Админ-панель: список всех зарегистрированных пользователей и
+                            управление доступом к курсу. Доступна только пользователям
+                            с ролью admin в таблице profiles (см. supabase/001_profiles_and_access.sql). */}
                         <Route
-                            path="/dashboard"
+                            path="/admin"
                             element={
-                                <PrivateRoute>
-                                    <CoursePage />
+                                <PrivateRoute requireAdmin>
+                                    <AdminPage />
                                 </PrivateRoute>
                             }
                         />

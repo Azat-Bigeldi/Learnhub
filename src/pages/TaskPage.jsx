@@ -4,12 +4,15 @@ import useDocumentTitle from "../hooks/useDocumentTitle";
 import { useLanguage } from "../i18n/useLanguage";
 import { PRACTICE_TASK_COUNT, buildPracticeTasks } from "../utils/practiceTasks";
 import { buildQuizQuestion } from "../utils/buildQuizQuestion";
+import { readCompletedTasks, markTaskCompleted, areAllTasksCompleted } from "../utils/taskCompletion";
 
 // Страница теста по одной практической задаче: вопрос и варианты ответа —
 // как в гугл-тестах, снизу — навигация между задачами (назад/вперёд и точки
 // прогресса). Переключение задачи меняет только сам вопрос: маршрут, шапка
 // и нижняя навигация остаются смонтированными, обновляется лишь блок с
 // вопросом и ответами (state ответа сбрасывается через useEffect по taskIndex).
+// Правильный ответ помечает задачу как выполненную (localStorage) — когда
+// все 10 задач по теме пройдены, на странице урока открывается разбор решения.
 export default function TaskPage() {
     const { t } = useLanguage();
     const params = useParams();
@@ -23,6 +26,7 @@ export default function TaskPage() {
 
     const [selectedOption, setSelectedOption] = useState(null);
     const [hasChecked, setHasChecked] = useState(false);
+    const [completedTasks, setCompletedTasks] = useState(readCompletedTasks);
 
     // Смена задачи (даже в рамках той же темы) сбрасывает выбранный ответ —
     // остальная разметка страницы (шапка, нижняя навигация) не перемонтируется.
@@ -51,7 +55,16 @@ export default function TaskPage() {
     const hasPrev = taskIndex > 0;
     const hasNext = taskIndex < PRACTICE_TASK_COUNT - 1;
     const lessonPath = `/courses/lesson/${moduleIndex}/${topicIndex}`;
+    const answerPath = `/courses/lesson/${moduleIndex}/${topicIndex}/answer`;
     const taskPath = (index) => `/courses/lesson/${moduleIndex}/${topicIndex}/task/${index}`;
+    const allTasksCompleted = areAllTasksCompleted(completedTasks, moduleIndex, topicIndex, PRACTICE_TASK_COUNT);
+
+    const handleCheckAnswer = () => {
+        setHasChecked(true);
+        if (selectedOption === quiz.correctIndex) {
+            setCompletedTasks(markTaskCompleted(moduleIndex, topicIndex, taskIndex));
+        }
+    };
 
     return (
         <div className="min-h-screen bg-[#0f0f0f] text-white flex flex-col">
@@ -122,7 +135,7 @@ export default function TaskPage() {
                         {!hasChecked ? (
                             <button
                                 type="button"
-                                onClick={() => setHasChecked(true)}
+                                onClick={handleCheckAnswer}
                                 disabled={selectedOption === null}
                                 className="mt-6 bg-primary hover:bg-primary-hover disabled:opacity-40 text-white uppercase tracking-wide text-sm rounded-full px-6 py-3 transition-colors"
                             >
@@ -177,10 +190,10 @@ export default function TaskPage() {
                     </Link>
                 ) : (
                     <Link
-                        to={lessonPath}
+                        to={allTasksCompleted ? answerPath : lessonPath}
                         className="flex items-center gap-1.5 text-sm bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-full no-underline transition-colors"
                     >
-                        {t("lessonPage.finishTestBtn")}
+                        {allTasksCompleted ? t("lessonPage.viewAnswerBtn") : t("lessonPage.finishTestBtn")}
                     </Link>
                 )}
             </div>

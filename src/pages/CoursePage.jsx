@@ -3,6 +3,8 @@ import play from "../imgsourse/play.png"
 import useDocumentTitle from "../hooks/useDocumentTitle"
 import { openWhatsApp } from "../utils/WhatsApp"
 import { useLanguage } from "../i18n/useLanguage"
+import { useAppSelector } from "../store"
+import { selectHasAccess } from "../store/Authslice"
 import TaskNumberAccordion from "../components/TaskNumberAccordion"
 
 // Количество уроков в каждом модуле не зависит от языка, поэтому хранится
@@ -55,6 +57,7 @@ export default function CoursePage() {
     const { t } = useLanguage();
     useDocumentTitle(t("meta.courses"))
     const [openIndex, setOpenIndex] = useState(null)
+    const hasAccess = useAppSelector(selectHasAccess)
 
     const modules = t("coursePage.modules")
     const lessonsLabel = t("coursePage.lessonsLabel")
@@ -119,18 +122,39 @@ export default function CoursePage() {
 
             <section className="px-4 sm:px-6 md:px-24 pb-16 md:pb-24 max-w-7xl mx-auto">
                 <h2 className="text-2xl sm:text-3xl font-serif mb-8">{t("coursePage.modulesHeading")}</h2>
-                <div>
-                    {modules.map((module, index) => (
-                        <AccordionItem
-                            key={module.title}
-                            module={module}
-                            lessonsCount={MODULE_LESSON_COUNTS[index]}
-                            lessonsLabel={lessonsLabel}
-                            index={index}
-                            isOpen={openIndex === index}
-                            onToggle={handleToggle}
-                        />
-                    ))}
+                <div className="relative">
+                    <div className={hasAccess ? "" : "blur-sm opacity-60 pointer-events-none select-none"} aria-hidden={!hasAccess}>
+                        {modules.map((module, index) => (
+                            <AccordionItem
+                                key={module.title}
+                                module={module}
+                                lessonsCount={MODULE_LESSON_COUNTS[index]}
+                                lessonsLabel={lessonsLabel}
+                                index={index}
+                                isOpen={openIndex === index}
+                                onToggle={handleToggle}
+                            />
+                        ))}
+                    </div>
+
+                    {!hasAccess && (
+                        <div className="absolute inset-0 flex items-center justify-center px-4 py-6">
+                            <div className="bg-white border border-gray-200 rounded-2xl shadow-lg px-6 py-8 max-w-sm w-full text-center flex flex-col items-center gap-3">
+                                <svg className="w-8 h-8 text-text/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                </svg>
+                                <p className="font-semibold text-text">{t("coursePage.lockedTitle")}</p>
+                                <p className="text-sm text-text/60">{t("coursePage.lockedDescription")}</p>
+                                <button
+                                    type="button"
+                                    onClick={handleEnroll}
+                                    className="mt-2 bg-primary hover:bg-primary-hover text-white uppercase tracking-wide text-sm rounded-full px-6 py-3 transition-colors"
+                                >
+                                    {t("coursePage.lockedCta")}
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </section>
         </div>

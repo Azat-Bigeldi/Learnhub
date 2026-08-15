@@ -4,7 +4,8 @@ import play from "../imgsourse/play.png";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 import { useLanguage } from "../i18n/useLanguage";
 import { TOPIC_DURATIONS } from "../data/topicDurations";
-import { buildPracticeTasks } from "../utils/practiceTasks";
+import { PRACTICE_TASK_COUNT, buildPracticeTasks } from "../utils/practiceTasks";
+import { readCompletedTasks, areAllTasksCompleted } from "../utils/taskCompletion";
 import TaskNumberAccordion from "../components/TaskNumberAccordion";
 
 const COMPLETED_STORAGE_KEY = "atokschool_completed_lessons";
@@ -54,6 +55,7 @@ export default function LessonPage() {
     const currentTopic = currentModule?.topics?.[topicIndex];
 
     const [completedSet, setCompletedSet] = useState(readCompletedFromStorage);
+    const [completedTasks] = useState(readCompletedTasks);
     // Программа курса теперь отдельная выезжающая панель, а не постоянная
     // колонка — по умолчанию закрыта.
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -116,6 +118,38 @@ export default function LessonPage() {
 
     const minutesLabel = t("lessonPage.minutesShort");
     const practiceTasks = buildPracticeTasks(t, currentTopic.title);
+    const allTasksCompletedForTopic = areAllTasksCompleted(completedTasks, moduleIndex, topicIndex, PRACTICE_TASK_COUNT);
+    const answerPath = `/courses/lesson/${moduleIndex}/${topicIndex}/answer`;
+
+    // 11-я ячейка сетки — разбор решения. Разблокируется только после того,
+    // как пройдены все 10 задач по теме; до этого — задизейблена и показывает
+    // замок, без ссылки.
+    const answerCell = allTasksCompletedForTopic ? (
+        <Link
+            to={answerPath}
+            aria-label={t("lessonPage.answerCellAria")}
+            className="aspect-square rounded-xl border-2 border-primary bg-primary text-white flex flex-col items-center justify-center gap-1 no-underline transition-colors hover:bg-primary-hover"
+        >
+            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wide">
+                {t("lessonPage.answerCellLabel")}
+            </span>
+        </Link>
+    ) : (
+        <div
+            aria-label={t("lessonPage.answerCellLockedAria")}
+            className="aspect-square rounded-xl border border-dashed border-gray-300 text-text/30 flex flex-col items-center justify-center gap-1"
+        >
+            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            <span className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wide">
+                {t("lessonPage.answerCellLabel")}
+            </span>
+        </div>
+    );
 
     return (
         <div className="min-h-screen bg-[#0f0f0f] text-white flex flex-col">
@@ -178,6 +212,7 @@ export default function LessonPage() {
                         heading={t("coursePage.tasksHeading")}
                         layout="grid"
                         linkBuilder={(taskIndex) => `/courses/lesson/${moduleIndex}/${topicIndex}/task/${taskIndex}`}
+                        trailingItem={answerCell}
                     />
                 </div>
             </div>
