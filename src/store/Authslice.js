@@ -22,4 +22,9 @@ export const { setUser, clearUser } = authslice.actions;
 export const selectCurrentUser = (state) => state.auth.user;
 export const selectIsAdmin = (state) => state.auth.user?.role === 'admin';
 export const selectIsLoggedIn = (state) => state.auth.user !== null;
+// Доступ к материалам курса: либо явно выдан администратором (has_access),
+// либо пользователь сам администратор — админы всегда видят всё.
+export const selectHasAccess = (state) => (
+    state.auth.user?.has_access === true || state.auth.user?.role === 'admin'
+);
 export default authslice.reducer;

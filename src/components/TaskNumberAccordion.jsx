@@ -7,7 +7,9 @@ import { useLanguage } from "../i18n/useLanguage";
 //   layout="grid" — квадратная цифровая сетка в духе клавиш калькулятора,
 //      без подписи; используется для задач на странице урока — клик по
 //      номеру открывает отдельную страницу с тестом по этой задаче.
-export default function TaskNumberAccordion({ tasks, linkBuilder, heading, layout = "list" }) {
+//      trailingItem — необязательная дополнительная ячейка в конце сетки
+//      (используется для разблокируемой ячейки «Ответ»).
+export default function TaskNumberAccordion({ tasks, linkBuilder, heading, layout = "list", trailingItem }) {
     const { t } = useLanguage();
     // Защита от падения, если родитель забыл передать linkBuilder — вместо
     // краша рендерим ссылки на "#" (чтобы сразу было видно проблему в разметке,
@@ -35,6 +37,7 @@ export default function TaskNumberAccordion({ tasks, linkBuilder, heading, layou
                             {index + 1}
                         </Link>
                     ))}
+                    {trailingItem}
                 </div>
             </div>
         );
