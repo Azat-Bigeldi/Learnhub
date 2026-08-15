@@ -20,10 +20,6 @@ export default function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [activeSection, setActiveSection] = useState("home");
 
-    // Пункты с id ведут на секции главной страницы (плавный скролл по якорю),
-    // пункты с to — на отдельные страницы через роутер. Пересчитываем при
-    // смене языка, чтобы подписи всегда были на актуальном языке.
-    // Пункт «Админ-панель» показывается только пользователям с ролью admin.
     const NAV_ITEMS = useMemo(
         () => [
             { id: "home", label: t("navbar.home"), type: "anchor" },
@@ -36,12 +32,10 @@ export default function Navbar() {
         [t, isAdmin]
     );
 
-    // Закрываем мобильное меню при любой навигации (смена страницы или якоря)
     useEffect(() => {
         setIsMenuOpen(false);
     }, [location.pathname, location.hash]);
 
-    // Блокируем прокрутку фона, пока открыт сайдбар
     useEffect(() => {
         document.body.style.overflow = isMenuOpen ? "hidden" : "";
         return () => {
@@ -49,7 +43,6 @@ export default function Navbar() {
         };
     }, [isMenuOpen]);
 
-    // Закрытие по Esc — стандартное поведение для выезжающих панелей.
     useEffect(() => {
         if (!isMenuOpen) return undefined;
         function handleKeyDown(event) {
@@ -59,8 +52,6 @@ export default function Navbar() {
         return () => document.removeEventListener("keydown", handleKeyDown);
     }, [isMenuOpen]);
 
-    // Подсвечиваем пункт меню, соответствующий секции, видимой во вьюпорте.
-    // Работает только на главной странице, где эти секции существуют.
     useEffect(() => {
         if (!isHome) return undefined;
 
@@ -109,49 +100,52 @@ export default function Navbar() {
     };
 
     return (
-        <header className="sticky top-0 z-50 bg-bg/95 backdrop-blur border-b border-black/5">
-            <div className="container mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 h-16 md:h-20">
-                <Link
-                    to="/"
-                    className="text-primary font-bold no-underline hover:underline italic text-lg shrink-0"
-                >
-                    AtokSchool
-                </Link>
-
-                {/* Навигация — десктоп */}
-                <nav className="hidden lg:flex items-center gap-6 xl:gap-8">
-                    {NAV_ITEMS.map((item) => renderNavItem(item))}
-                </nav>
-
-                <div className="hidden lg:flex items-center gap-4">
-                    <LanguageSwitcher variant="desktop" />
+        // ВАЖНО: затемнение и выезжающая панель (fixed) вынесены за пределы
+        // <header>. У <header> есть backdrop-blur (backdrop-filter), а по
+        // CSS-спеке элемент с filter/backdrop-filter становится containing
+        // block для всех своих потомков с position: fixed — из-за этого fixed
+        // считался не от экрана, а от самого хедера, и панель "разваливалась"
+        // по ширине/позиции. Держите backdrop-blur и fixed-элементы на разных
+        // уровнях вложенности, а не внутри друг друга.
+        <>
+            <header className="sticky top-0 z-50 bg-bg/95 backdrop-blur border-b border-black/5">
+                <div className="container mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 h-16 md:h-20">
                     <Link
-                        to="/register"
-                        className="bg-primary hover:bg-primary-hover text-white tracking-wide px-6 py-2 rounded-full no-underline transition-colors"
+                        to="/"
+                        className="text-primary font-bold no-underline hover:underline italic text-lg shrink-0"
                     >
-                        {t("navbar.login")}
+                        AtokSchool
                     </Link>
+
+                    <nav className="hidden lg:flex items-center gap-6 xl:gap-8">
+                        {NAV_ITEMS.map((item) => renderNavItem(item))}
+                    </nav>
+
+                    <div className="hidden lg:flex items-center gap-4">
+                        <LanguageSwitcher variant="desktop" />
+                        <Link
+                            to="/register"
+                            className="bg-primary hover:bg-primary-hover text-white tracking-wide px-6 py-2 rounded-full no-underline transition-colors"
+                        >
+                            {t("navbar.login")}
+                        </Link>
+                    </div>
+
+                    <button
+                        type="button"
+                        className="lg:hidden relative w-10 h-10 flex items-center justify-center shrink-0"
+                        aria-label={t("navbar.openMenu")}
+                        aria-haspopup="dialog"
+                        aria-expanded={isMenuOpen}
+                        onClick={() => setIsMenuOpen(true)}
+                    >
+                        <span className="absolute block h-0.5 w-6 bg-text rounded-full -translate-y-2" />
+                        <span className="absolute block h-0.5 w-6 bg-text rounded-full" />
+                        <span className="absolute block h-0.5 w-6 bg-text rounded-full translate-y-2" />
+                    </button>
                 </div>
+            </header>
 
-                {/* Бургер-кнопка — мобильные/планшет, открывает сайдбар справа */}
-                <button
-                    type="button"
-                    className="lg:hidden relative w-10 h-10 flex items-center justify-center shrink-0"
-                    aria-label={t("navbar.openMenu")}
-                    aria-haspopup="dialog"
-                    aria-expanded={isMenuOpen}
-                    onClick={() => setIsMenuOpen(true)}
-                >
-                    <span className="absolute block h-0.5 w-6 bg-text rounded-full -translate-y-2" />
-                    <span className="absolute block h-0.5 w-6 bg-text rounded-full" />
-                    <span className="absolute block h-0.5 w-6 bg-text rounded-full translate-y-2" />
-                </button>
-            </div>
-
-            {/* Затемнение фона под выезжающим сайдбаром. Рендерим только когда
-                меню открыто (а не всегда с opacity-0) — так надёжнее: не нужно
-                полагаться на то, что "невидимый" full-screen div с opacity-0
-                и pointer-events-none корректно проигнорируется браузером. */}
             {isMenuOpen && (
                 <div
                     onClick={() => setIsMenuOpen(false)}
@@ -161,11 +155,6 @@ export default function Navbar() {
                 />
             )}
 
-            {/* Мобильное меню — выезжающий сайдбар справа.
-                Ключевые свойства (position, ширина, непрозрачный фон) заданы
-                и через Tailwind, и продублированы инлайн-стилем — так панель
-                не сломается даже если конкретный класс по какой-то причине
-                не попадёт в собранный CSS (устаревший кеш сборки и т.п.). */}
             <aside
                 role="dialog"
                 aria-modal="true"
@@ -211,6 +200,6 @@ export default function Navbar() {
                     </Link>
                 </div>
             </aside>
-        </header>
+        </>
     );
 }
