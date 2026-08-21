@@ -4,6 +4,7 @@ import { useAppDispatch } from "../store"
 import { addNotification } from "../store/notificationSlice.js"
 import useDocumentTitle from "../hooks/useDocumentTitle"
 import Spinner from "../components/Spinner"
+import ConfirmModal from "../components/ConfirmModal"
 import { useLanguage } from "../i18n/useLanguage"
 
 function formatRegisteredAt(isoString, language) {
@@ -33,6 +34,10 @@ export default function AdminPage() {
     // Отслеживаем, для какого пользователя сейчас идёт запрос на смену
     // доступа — чтобы задизейблить именно его кнопку, а не все сразу.
     const [pendingId, setPendingId] = useState(null)
+    // Профиль, для которого показан диалог подтверждения отзыва доступа.
+    // Подтверждение нужно только при ОТЗЫВЕ (деструктивное действие) —
+    // выдачу доступа подтверждать не нужно, это не разрушительно.
+    const [profileToRevoke, setProfileToRevoke] = useState(null)
 
     useEffect(() => {
         let isMounted = true
@@ -70,9 +75,10 @@ export default function AdminPage() {
         ))
     }, [profiles, searchQuery])
 
-    const handleToggleAccess = async (profile) => {
+    // Собственно запрос к Supabase. Вызывается либо сразу (выдача доступа),
+    // либо после подтверждения в модалке (отзыв доступа).
+    const performAccessUpdate = async (profile, nextAccess) => {
         setPendingId(profile.id)
-        const nextAccess = !profile.has_access
 
         const { error } = await supabase
             .from("profiles")
@@ -95,6 +101,24 @@ export default function AdminPage() {
             message: t(nextAccess ? "admin.accessUpdateSuccessGrant" : "admin.accessUpdateSuccessRevoke", { name: displayName }),
             type: "success",
         }))
+    }
+
+    const handleToggleAccess = (profile) => {
+        const nextAccess = !profile.has_access
+
+        if (!nextAccess) {
+            // Отзыв доступа — деструктивное действие, спрашиваем подтверждение.
+            setProfileToRevoke(profile)
+            return
+        }
+
+        performAccessUpdate(profile, nextAccess)
+    }
+
+    const handleConfirmRevoke = () => {
+        if (!profileToRevoke) return
+        performAccessUpdate(profileToRevoke, false)
+        setProfileToRevoke(null)
     }
 
     return (
@@ -181,6 +205,13 @@ export default function AdminPage() {
                     </div>
                 )}
             </div>
+
+            <ConfirmModal
+                isOpen={profileToRevoke !== null}
+                message={profileToRevoke ? t("admin.confirmRevokeAccess", { name: profileToRevoke.full_name || profileToRevoke.email }) : ""}
+                onConfirm={handleConfirmRevoke}
+                onCancel={() => setProfileToRevoke(null)}
+            />
         </section>
     )
 }

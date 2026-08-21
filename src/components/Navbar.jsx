@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { useLanguage } from "../i18n/useLanguage";
-import { useAppSelector } from "../store";
-import { selectIsAdmin } from "../store/Authslice";
+import { useAppDispatch, useAppSelector } from "../store";
+import { selectIsAdmin, selectIsLoggedIn, selectCurrentUser } from "../store/Authslice";
+import { addNotification } from "../store/notificationSlice";
+import { supabase } from "../lib/supabaseClient";
 
 function navLinkClasses(isActive) {
     return [
@@ -15,10 +17,33 @@ function navLinkClasses(isActive) {
 export default function Navbar() {
     const { t } = useLanguage();
     const location = useLocation();
+    const navigate = useNavigate();
+    const dispatch = useAppDispatch();
     const isHome = location.pathname === "/";
     const isAdmin = useAppSelector(selectIsAdmin);
+    const isLoggedIn = useAppSelector(selectIsLoggedIn);
+    const currentUser = useAppSelector(selectCurrentUser);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [activeSection, setActiveSection] = useState("home");
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+    const handleLogout = async () => {
+        if (isLoggingOut) return;
+        setIsLoggingOut(true);
+        setIsMenuOpen(false);
+        const { error } = await supabase.auth.signOut();
+        setIsLoggingOut(false);
+
+        if (error) {
+            dispatch(addNotification({ message: error.message, type: "error" }));
+            return;
+        }
+        // Само состояние (Redux + localStorage) обновится через подписку
+        // onAuthStateChange в useAuthSession — здесь просто уведомляем
+        // и уводим со страниц, требующих авторизации/доступа.
+        dispatch(addNotification({ message: t("auth.notifications.loggedOut"), type: "success" }));
+        navigate("/");
+    };
 
     const NAV_ITEMS = useMemo(
         () => [
@@ -123,12 +148,24 @@ export default function Navbar() {
 
                     <div className="hidden lg:flex items-center gap-4">
                         <LanguageSwitcher variant="desktop" />
-                        <Link
-                            to="/register"
-                            className="bg-primary hover:bg-primary-hover text-white tracking-wide px-6 py-2 rounded-full no-underline transition-colors"
-                        >
-                            {t("navbar.login")}
-                        </Link>
+                        {isLoggedIn ? (
+                            <button
+                                type="button"
+                                onClick={handleLogout}
+                                disabled={isLoggingOut}
+                                title={currentUser?.email}
+                                className="border border-gray-300 hover:border-primary hover:text-primary text-text tracking-wide px-6 py-2 rounded-full transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                            >
+                                {t("navbar.logout")}
+                            </button>
+                        ) : (
+                            <Link
+                                to="/register"
+                                className="bg-primary hover:bg-primary-hover text-white tracking-wide px-6 py-2 rounded-full no-underline transition-colors"
+                            >
+                                {t("navbar.login")}
+                            </Link>
+                        )}
                     </div>
 
                     <button
@@ -191,13 +228,24 @@ export default function Navbar() {
 
                 <div className="flex flex-col gap-3 px-4 sm:px-6 mt-2">
                     <LanguageSwitcher variant="mobile" />
-                    <Link
-                        to="/register"
-                        onClick={() => setIsMenuOpen(false)}
-                        className="text-center bg-primary hover:bg-primary-hover text-white tracking-wide px-6 py-2.5 rounded-full no-underline transition-colors"
-                    >
-                        {t("navbar.login")}
-                    </Link>
+                    {isLoggedIn ? (
+                        <button
+                            type="button"
+                            onClick={handleLogout}
+                            disabled={isLoggingOut}
+                            className="text-center border border-gray-300 hover:border-primary hover:text-primary text-text tracking-wide px-6 py-2.5 rounded-full transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                        >
+                            {t("navbar.logout")}
+                        </button>
+                    ) : (
+                        <Link
+                            to="/register"
+                            onClick={() => setIsMenuOpen(false)}
+                            className="text-center bg-primary hover:bg-primary-hover text-white tracking-wide px-6 py-2.5 rounded-full no-underline transition-colors"
+                        >
+                            {t("navbar.login")}
+                        </Link>
+                    )}
                 </div>
             </aside>
         </>

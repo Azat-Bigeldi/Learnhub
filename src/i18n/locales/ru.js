@@ -28,6 +28,7 @@ export default {
         results: 'Результаты',
         faq: 'Вопросы',
         login: 'Войти',
+        logout: 'Выйти',
         admin: 'Админ-панель',
         openMenu: 'Открыть меню',
         closeMenu: 'Закрыть меню',
@@ -220,6 +221,7 @@ export default {
         notifications: {
             confirmEmail: 'Мы отправили письмо для подтверждения на вашу почту. Проверьте входящие.',
             welcomeBack: 'Добро пожаловать, {{name}}!',
+            loggedOut: 'Вы вышли из аккаунта.',
         },
     },
 
@@ -302,6 +304,7 @@ export default {
         columnAccess: 'Доступ',
         grantAccessBtn: 'Дать доступ',
         revokeAccessBtn: 'Забрать доступ',
+        confirmRevokeAccess: 'Забрать доступ к курсу у пользователя {{name}}?',
         emptyState: 'Пока никто не зарегистрировался.',
         loadError: 'Не удалось загрузить список пользователей.',
         accessUpdateSuccessGrant: 'Доступ выдан: {{name}}',

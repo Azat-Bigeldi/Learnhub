@@ -27,6 +27,7 @@ export default {
         results: 'Нәтижелер',
         faq: 'Сұрақтар',
         login: 'Кіру',
+        logout: 'Шығу',
         admin: 'Әкімші панелі',
         openMenu: 'Мәзірді ашу',
         closeMenu: 'Мәзірді жабу',
@@ -219,6 +220,7 @@ export default {
         notifications: {
             confirmEmail: 'Растау хатын поштаңызға жібердік. Кіріс хабарларды тексеріңіз.',
             welcomeBack: 'Қош келдіңіз, {{name}}!',
+            loggedOut: 'Сіз аккаунттан шықтыңыз.',
         },
     },
 
@@ -301,6 +303,7 @@ export default {
         columnAccess: 'Қолжетімділік',
         grantAccessBtn: 'Қолжетімділік беру',
         revokeAccessBtn: 'Қолжетімділікті алып тастау',
+        confirmRevokeAccess: '{{name}} пайдаланушысынан курсқа қолжетімділікті алып тастау керек пе?',
         emptyState: 'Әзірге ешкім тіркелмеген.',
         loadError: 'Пайдаланушылар тізімін жүктеу мүмкін болмады.',
         accessUpdateSuccessGrant: 'Қолжетімділік берілді: {{name}}',
